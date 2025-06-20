@@ -18,4 +18,27 @@ This repo contains:
 - [ ] paralinguistic control tags
 
 ## usage
-TODO
+
+```python
+from openai import OpenAI
+from orpheus_next import decode_orpheus
+import torch
+import torchaudio
+
+client = OpenAI(api_key="...", base_url="...")
+
+# if using a variant without any chat template; base completions api works as well
+gen = client.chat.completions.create(
+    model="orpheus",
+    messages=[{"role": "user", "content": "I'm a speech generation model that sounds like a person."}],
+    stream=True,
+    temperature=0.7,
+    max_completion_tokens=5000,
+)
+
+gen = map(lambda c: c.choices[0].delta.content, gen)
+
+audio = torch.cat([frame for frame in decode_orpheus(gen)], dim=1).cpu()
+
+torchaudio.save("out.wav", audio, sample_rate=24000, channels_first=True)
+```
