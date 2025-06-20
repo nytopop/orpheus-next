@@ -1,10 +1,10 @@
 import itertools as I
 import logging
-from typing import AsyncIterator, Iterator, List
+from typing import AsyncIterator, Iterator
 
-import torchaudio.functional as F
 import asyncstdlib as A
 import torch
+import torchaudio.functional as F
 from snac import SNAC
 
 logger = logging.getLogger(__name__)
@@ -14,8 +14,11 @@ class Parser:
     def __init__(self):
         self.buffer = ""
 
-    def feed(self, input: str):
+    def feed(self, input: str | None):
         """Feed text to the parser, yielding (cb, code) tuples as they become available."""
+
+        if input is None:
+            return
 
         self.buffer += input
 
@@ -59,7 +62,7 @@ _codec.decode(
 )
 
 
-def _decode_orpheus(codes: List[int]) -> torch.Tensor:
+def _decode_orpheus(codes: list[int]) -> torch.Tensor:
     """Decode a list of SNAC codes in orpheus layout as audio."""
 
     assert len(codes) % 7 == 0 and len(codes) >= 7
@@ -77,7 +80,7 @@ def _decode_orpheus(codes: List[int]) -> torch.Tensor:
         return _codec.decode([_12, _24, _48]).squeeze(0)
 
 
-def _decode_orpheus_sw(mframe: List[int]) -> torch.Tensor:
+def _decode_orpheus_sw(mframe: list[int]) -> torch.Tensor:
     """Decode one frame of audio (85.333ms) from a sliding window of orpheus SNAC frames."""
 
     assert 3 <= len(mframe) // 7
@@ -96,13 +99,13 @@ class Decoder:
         else:
             raise ValueError(f"window must be at least 3, but got {window}")
 
-    def feed_sw(self, input: str):
+    def feed_sw(self, input: str | None):
         """Feed text into the decoder, yielding decoded audio frames."""
 
         for frame in self.feed(input):
             yield _decode_orpheus_sw(frame)
 
-    def feed(self, input: str):
+    def feed(self, input: str | None):
         """Feed text into the decoder, yielding SNAC frames."""
 
         for cb, code in self.parser.feed(input):
@@ -121,7 +124,7 @@ class Decoder:
             yield self.codes[-self.window :]
 
 
-def decode_orpheus(input: str | Iterator[str] | AsyncIterator[str], window: int = 3):
+def decode_orpheus(input: str | Iterator[str | None] | AsyncIterator[str | None], window: int = 3):
     """Decode orpheus tokens to audio tensor(s).
 
     Args:

@@ -29,7 +29,6 @@ async def main():
     )
 
     gen = A.map(lambda c: c.choices[0].delta.content, gen)
-    gen = A.filter(lambda t: t is not None, gen)
 
     audio = torch.cat([au async for au in decode_orpheus(gen)], dim=1).cpu()
 
