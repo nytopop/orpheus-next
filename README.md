@@ -27,7 +27,6 @@ import torchaudio
 
 client = OpenAI(api_key="...", base_url="...")
 
-# if using a variant without any chat template; base completions api works as well
 gen = client.chat.completions.create(
     model="orpheus",
     messages=[{"role": "user", "content": "I'm a speech generation model that sounds like a person."}],
