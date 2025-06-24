@@ -1,3 +1,6 @@
+# /// script
+# dependencies = ["unsloth", "transformers", "datasets", "tensorboard"]
+# ///
 import argparse
 import math
 import random
